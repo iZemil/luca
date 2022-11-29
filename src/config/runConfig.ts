@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import chalk from 'chalk';
 import * as fs from 'fs/promises';
 
-import { delay } from '../utils';
+import { wait } from '../utils';
 
 import { LOG_PATH } from './consts';
 import { openConfig } from './openConfig';
@@ -17,7 +17,17 @@ export function isAxiosError(error: any): error is AxiosError {
 
 const log = console.log;
 
-const handleRequest = async (url: string, num: number, total: number): Promise<AxiosResponse | null> => {
+interface IHandleRequest {
+    url: string;
+    num: number;
+    total: number;
+    sleepDelay?: number;
+    sleepCount?: number;
+}
+const ONE_MINUTE = 60 * 1000;
+const handleRequest = async (options: IHandleRequest): Promise<AxiosResponse | null> => {
+    const { url, num, total, sleepDelay = ONE_MINUTE, sleepCount = 0 } = options;
+
     let response: AxiosResponse | null = null;
     let isErroredRequest = false;
 
@@ -37,6 +47,22 @@ const handleRequest = async (url: string, num: number, total: number): Promise<A
         );
     }
 
+    // Handle: Too Many Requests
+    if (sleepCount > 3) {
+        throw new Error(`Exceeded ${sleepCount} requests`);
+    }
+    if (response && response.status === 429) {
+        log(chalk.grey(`sleep...`));
+
+        await wait(sleepDelay);
+
+        return handleRequest({
+            ...options,
+            sleepDelay: sleepDelay + ONE_MINUTE,
+            sleepCount: sleepCount + 1,
+        });
+    }
+
     return response;
 };
 
@@ -44,7 +70,6 @@ const writeToLog = async (...strs: string[]) => {
     await fs.appendFile(LOG_PATH, '\n' + strs.join('\n'));
 };
 
-// TODO: 429 status - sleep and retry
 // TODO: run from last log element
 export const runConfig = async (): Promise<void> => {
     try {
@@ -58,11 +83,11 @@ export const runConfig = async (): Promise<void> => {
         let index = 0;
         for (const item of items) {
             const num = (index += 1);
-
             const url = query(baseUrl, item);
-            const response = await handleRequest(url, num, total);
 
             try {
+                const response = await handleRequest({ url, num, total });
+
                 await writeToLog(
                     `\nurl: ${url}`,
                     `status: ${response?.status}`,
@@ -71,7 +96,7 @@ export const runConfig = async (): Promise<void> => {
             } catch (error) {
                 console.error('handler error', error);
             } finally {
-                await delay(config.delay);
+                await wait(config.delay);
             }
         }
 
