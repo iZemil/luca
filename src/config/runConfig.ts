@@ -4,9 +4,9 @@ import * as fs from 'fs/promises';
 
 import { delay } from '../utils';
 
-import { CONFIG_PATH, LOG_PATH } from './consts';
-import { TConfig, THandledData } from './types';
-import { validateConfig } from './validateConfig';
+import { LOG_PATH } from './consts';
+import { openConfig } from './openConfig';
+import { THandledData } from './types';
 
 export function isAxiosError(error: any): error is AxiosError {
     if ('response' in error) {
@@ -42,19 +42,21 @@ const handleRequest = async (url: string, num: number, total: number): Promise<A
 };
 
 const writeToLog = async (value: string) => {
-    await fs.appendFile(LOG_PATH, value);
+    await fs.appendFile(LOG_PATH, '\n' + value);
 };
 
 // TODO: error retry
-// TODO: run from last element
-// TODO: clear result
-// TODO: validat config - no config
-export const runConfig = async (options: TConfig = require(CONFIG_PATH)): Promise<void> => {
+// TODO: run from last log element
+export const runConfig = async (): Promise<void> => {
     try {
-        log(chalk.blue('Luca is running...'));
-
-        const config = validateConfig(options);
+        const config = openConfig();
         const { baseUrl, items, query } = config;
+
+        log(chalk.blue('Luca is running...'));
+        let startSession = '';
+        startSession += `\nStart session`;
+        startSession += `\ntime: ${new Date()}`;
+        await writeToLog(startSession);
 
         const total = items.length;
         let index = 0;
@@ -82,7 +84,7 @@ export const runConfig = async (options: TConfig = require(CONFIG_PATH)): Promis
             try {
                 const { status, data } = handleData(response);
 
-                let txt = '\n';
+                let txt = '';
                 txt += `\nurl: ${url}`;
                 txt += `\nstatus: ${status}`;
                 txt += `\ndata: ${JSON.stringify(data)}`;
@@ -90,12 +92,16 @@ export const runConfig = async (options: TConfig = require(CONFIG_PATH)): Promis
             } catch (error) {
                 console.error('handler error', error);
             } finally {
-                await delay(options.delay);
+                await delay(config.delay);
             }
         }
 
         log(chalk.green(`Finished:\n> ${LOG_PATH}`));
+        let endSession = '';
+        endSession += `\nEnd session`;
+        endSession += `\ntime: ${new Date()}`;
+        writeToLog(endSession);
     } catch (e) {
-        console.error(e);
+        log(chalk.red(e));
     }
 };
