@@ -7,3 +7,8 @@ export interface TConfig<T = unknown> {
     query: (baseUrl: string, item: T) => string;
     handler: (response: AxiosResponse | null, item: T) => any;
 }
+
+export interface THandledData<T = unknown> {
+    status: number | null;
+    data: T | null;
+}

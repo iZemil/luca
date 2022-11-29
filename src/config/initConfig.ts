@@ -1,30 +1,14 @@
 import chalk from 'chalk';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 
-import { getConfigPath } from './consts';
+import { CONFIG_PATH } from './consts';
 
 export const initConfig = async () => {
     try {
-        const config = getConfigPath();
+        await fs.copyFile(path.resolve('src/config/default.js'), CONFIG_PATH);
 
-        await fs.writeFile(
-            config,
-            `module.exports = {
-    delay: 500,
-    baseUrl: "https://www.npmjs.com/package",
-    query: (baseUrl, item) => {
-        return \`\${baseUrl}/\${item}\`;
-    },
-    handler: (response, item) => {
-        return {
-            status: response.status,
-        };
-    },
-    items: ['foo', 'bar'],
-}`
-        );
-
-        console.log(chalk.green(`Configuration file was created:\n> ${config}`));
+        console.log(chalk.green(`Configuration file was created:\n> ${CONFIG_PATH}`));
     } catch (e) {
         console.error(e);
     }
