@@ -6,7 +6,6 @@ import { delay } from '../utils';
 
 import { LOG_PATH } from './consts';
 import { openConfig } from './openConfig';
-import { THandledData } from './types';
 
 export function isAxiosError(error: any): error is AxiosError {
     if ('response' in error) {
@@ -41,11 +40,11 @@ const handleRequest = async (url: string, num: number, total: number): Promise<A
     return response;
 };
 
-const writeToLog = async (value: string) => {
-    await fs.appendFile(LOG_PATH, '\n' + value);
+const writeToLog = async (...strs: string[]) => {
+    await fs.appendFile(LOG_PATH, '\n' + strs.join('\n'));
 };
 
-// TODO: error retry
+// TODO: 429 status - sleep and retry
 // TODO: run from last log element
 export const runConfig = async (): Promise<void> => {
     try {
@@ -53,42 +52,22 @@ export const runConfig = async (): Promise<void> => {
         const { baseUrl, items, query } = config;
 
         log(chalk.blue('Luca is running...'));
-        let startSession = '';
-        startSession += `\nStart session`;
-        startSession += `\ntime: ${new Date()}`;
-        await writeToLog(startSession);
+        await writeToLog('Start session', `time: ${new Date()}`);
 
         const total = items.length;
         let index = 0;
         for (const item of items) {
             const num = (index += 1);
-            const isFirst = num === 1;
-            const isLast = num === total;
 
             const url = query(baseUrl, item);
             const response = await handleRequest(url, num, total);
-            const handleData = (res: AxiosResponse | null): THandledData => {
-                if (!res) {
-                    return {
-                        status: null,
-                        data: null,
-                    };
-                }
-
-                return {
-                    status: res.status,
-                    data: config.handler(res, item),
-                };
-            };
 
             try {
-                const { status, data } = handleData(response);
-
-                let txt = '';
-                txt += `\nurl: ${url}`;
-                txt += `\nstatus: ${status}`;
-                txt += `\ndata: ${JSON.stringify(data)}`;
-                await writeToLog(txt);
+                await writeToLog(
+                    `\nurl: ${url}`,
+                    `status: ${response?.status}`,
+                    `data: ${response ? JSON.stringify(config.handler(response, item)) : null}`
+                );
             } catch (error) {
                 console.error('handler error', error);
             } finally {
@@ -97,10 +76,7 @@ export const runConfig = async (): Promise<void> => {
         }
 
         log(chalk.green(`Finished:\n> ${LOG_PATH}`));
-        let endSession = '';
-        endSession += `\nEnd session`;
-        endSession += `\ntime: ${new Date()}`;
-        writeToLog(endSession);
+        writeToLog(`\nEnd session`, `time: ${new Date()}`, '');
     } catch (e) {
         log(chalk.red(e));
     }
