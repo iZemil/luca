@@ -1,6 +1,6 @@
 import { TConfig } from './types';
 
-export const validateConfig = (config: TConfig) => {
+export const validateConfig = (config: TConfig): TConfig => {
     const { baseUrl, items, query, handler } = config;
 
     if (items.length === 0) {
@@ -12,4 +12,6 @@ export const validateConfig = (config: TConfig) => {
     if (!handler) {
         throw new Error(`Specify config handler`);
     }
+
+    return config;
 };

@@ -8,7 +8,7 @@ import { getConfigPath, getResultPath } from './consts';
 import { TConfig } from './types';
 import { validateConfig } from './validateConfig';
 
-function isAxiosError(error: any): error is AxiosError {
+export function isAxiosError(error: any): error is AxiosError {
     if ('response' in error) {
         return true;
     }
@@ -18,46 +18,53 @@ function isAxiosError(error: any): error is AxiosError {
 
 const log = console.log;
 
+// TODO: error retry
+// TODO: run from last element
+// TODO: clear result
+// TODO: validat config - no config
 export const runConfig = async (options: TConfig = require(getConfigPath())): Promise<void> => {
     const resultPath = getResultPath();
 
     try {
-        validateConfig(options);
-
         log(chalk.blue('Luca is running...'));
 
-        const { baseUrl, items, query, handler } = options;
+        const config = validateConfig(options);
+        const { baseUrl, items, query, handler } = config;
 
         const total = items.length;
         let index = 0;
         for (const item of items) {
+            const num = (index += 1);
+            const isFirst = num === 1;
+            const isLast = num === total;
+
             const url = query(baseUrl, item);
-
-            let status = undefined;
             let response: AxiosResponse | null = null;
+            let isErroredRequest = false;
+
             try {
-                response = (await axios.get(url)) as AxiosResponse;
-
-                status = response.status;
+                response = await axios.get(url);
             } catch (e) {
-                if (isAxiosError(e) && e.response) {
-                    status = e.response.status;
-                }
-            }
+                isErroredRequest = true;
 
-            log(chalk.blue(`${index + 1}/${total}`), `GET ${url} (${status})`);
+                if (isAxiosError(e) && e.response) {
+                    response = e.response;
+                }
+            } finally {
+                log(
+                    chalk.blue(`${num}/${total}`),
+                    `GET ${chalk[isErroredRequest ? 'red' : 'green'](`(${response?.status})`)}:`,
+                    url
+                );
+            }
 
             try {
                 const data = handler(response, item);
-                const isFirst = index === 0;
-                const isLast = index + 1 === total;
 
                 await fs.appendFile(resultPath, `${isFirst ? '[' : ''}${JSON.stringify(data)}${isLast ? ']' : ','}`);
             } catch (error) {
                 console.error('handler error', error);
             } finally {
-                index += 1;
-
                 await delay(options.delay);
             }
         }

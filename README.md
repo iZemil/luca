@@ -1,6 +1,6 @@
 # Luca &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/iZemil/luca/blob/main/LICENSE) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/izemil/luca)
 
-Tiny [NodeJS package](https://www.npmjs.com/package/luca) to check urls by name list and getting statuses.
+Tiny [NPM package](https://www.npmjs.com/package/luca) to check urls by name list and getting statuses.
 
 ## Installation
 
