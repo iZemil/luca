@@ -75,11 +75,13 @@ export const runConfig = async (): Promise<void> => {
     try {
         const config = openConfig();
         const { baseUrl, items, query } = config;
+        const total = items.length;
 
-        log(chalk.blue('Luca is running...'));
+        const axmTime = total * (config.delay + 300);
+        const axmMin = Math.floor(axmTime / 60000);
+        log(chalk.blue('Luca starts a session'), `approximate end in ${axmMin} minutes`);
         await writeToLog('Start session', `time: ${new Date()}`);
 
-        const total = items.length;
         let index = 0;
         for (const item of items) {
             const num = (index += 1);
@@ -100,7 +102,7 @@ export const runConfig = async (): Promise<void> => {
             }
         }
 
-        log(chalk.green(`Finished:\n> ${LOG_PATH}`));
+        log(chalk.green(`Luca finished:\n> ${LOG_PATH}`));
         writeToLog(`\nEnd session`, `time: ${new Date()}`, '');
     } catch (e) {
         log(chalk.red(e));
