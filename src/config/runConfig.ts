@@ -71,6 +71,7 @@ const writeToLog = async (...strs: string[]) => {
 };
 
 // TODO: run from last log element
+// TODO: add log name --name
 export const runConfig = async (): Promise<void> => {
     try {
         const config = openConfig();

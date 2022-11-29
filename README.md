@@ -2,6 +2,8 @@
 
 Tiny [NPM package](https://www.npmjs.com/package/luca) to check urls by name list and getting statuses.
 
+<img src="./logo.png" alt="luca" width="256"/>
+
 ## Installation
 
 -   For cli usage install the package globally `npm i luca -g`
