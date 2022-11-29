@@ -6,7 +6,7 @@ import { CONFIG_PATH } from './consts';
 
 export const initConfig = async () => {
     try {
-        await fs.copyFile(path.resolve('src/config/default.js'), CONFIG_PATH);
+        await fs.copyFile(path.resolve(__dirname, `default.js`), CONFIG_PATH);
 
         console.log(chalk.green(`Configuration file was created:\n> ${CONFIG_PATH}`));
     } catch (e) {
