@@ -1,22 +1,22 @@
 {
     "name": "luca",
-    "description": "",
+    "description": "mass checker for http-requests",
     "keywords": [],
-    "author": {
-        "name": "zemil"
-    },
+    "license": "MIT",
+    "version": "0.0.1",
+    "main": "dist/index.js",
     "bin": "dist/cli/index.js",
     "private": false,
-    "main": "dist/index.js",
+    "files": [
+        "dist"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/iZemil/luca.git"
     },
-    "files": [
-        "dist"
-    ],
-    "license": "MIT",
-    "version": "0.0.1",
+    "author": {
+        "name": "zemil"
+    },
     "scripts": {
         "build": "tsc",
         "dev": "tsc-watch ./src/dev.ts --outDir ./dist/ --onSuccess \"node ./dist/dev.js\" --esModuleInterop",
