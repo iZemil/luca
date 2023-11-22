@@ -1,1 +1,1 @@
-export { runConfig as luca } from './config/runConfig';
+export { luca } from './core';

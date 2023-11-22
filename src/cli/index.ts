@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { run } from './run';
+import { start } from './cli';
 
-run();
+start();

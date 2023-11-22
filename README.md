@@ -14,5 +14,6 @@ Tiny [NPM package](https://www.npmjs.com/package/luca) to check urls by name lis
 
 ## Development
 
+-   install ts-node globally `npm i ts-node -g`
 -   main lib dev `yarn dev` and work with dev.ts file
--   cli dev `yarn dev:cli <comand> [options]`
+-   cli dev `ts-node ./src/cli --help`
